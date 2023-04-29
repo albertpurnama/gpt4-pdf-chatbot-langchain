@@ -5,19 +5,14 @@ import { pinecone } from '@/utils/pinecone-client';
 import { CustomPDFLoader } from '@/utils/customPDFLoader';
 import { PINECONE_INDEX_NAME, PINECONE_NAME_SPACE } from '@/config/pinecone';
 import { DirectoryLoader } from 'langchain/document_loaders/fs/directory';
+import { DocumentMetadata } from '@/types/document';
 
-/* Name of directory to retrieve your files from */
-const filePath = 'docs';
-
-export const run = async () => {
+export const run = async (buff: Blob, metadata: DocumentMetadata) => {
   try {
-    /*load raw docs from the all files in the directory */
-    const directoryLoader = new DirectoryLoader(filePath, {
-      '.pdf': (path) => new CustomPDFLoader(path),
-    });
+    const pdfLoader = new CustomPDFLoader(buff, metadata);
 
     // const loader = new PDFLoader(filePath);
-    const rawDocs = await directoryLoader.load();
+    const rawDocs = await pdfLoader.load();
 
     /* Split text into chunks */
     const textSplitter = new RecursiveCharacterTextSplitter({
@@ -38,6 +33,7 @@ export const run = async () => {
       pineconeIndex: index,
       namespace: PINECONE_NAME_SPACE,
       textKey: 'text',
+      filter: {}
     });
   } catch (error) {
     console.log('error', error);

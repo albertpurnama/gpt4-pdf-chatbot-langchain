@@ -3,8 +3,11 @@ import { readFile } from 'fs/promises';
 import { BaseDocumentLoader } from 'langchain/document_loaders';
 
 export abstract class BufferLoader extends BaseDocumentLoader {
-  constructor(public filePathOrBlob: string | Blob) {
+  private metadata: Record<string, any>;
+
+  constructor(public filePathOrBlob: string | Blob, metadata: Record<string, any>) {
     super();
+    this.metadata = metadata;
   }
 
   protected abstract parse(
@@ -17,12 +20,15 @@ export abstract class BufferLoader extends BaseDocumentLoader {
     let metadata: Record<string, string>;
     if (typeof this.filePathOrBlob === 'string') {
       buffer = await readFile(this.filePathOrBlob);
-      metadata = { source: this.filePathOrBlob };
+      metadata = {
+        ...this.metadata, 
+        source: this.filePathOrBlob 
+      };
     } else {
       buffer = await this.filePathOrBlob
         .arrayBuffer()
         .then((ab) => Buffer.from(ab));
-      metadata = { source: 'blob', blobType: this.filePathOrBlob.type };
+      metadata = this.metadata;
     }
     return this.parse(buffer, metadata);
   }
