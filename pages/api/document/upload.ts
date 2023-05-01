@@ -1,7 +1,6 @@
 import { withApiAuthRequired, getSession } from '@auth0/nextjs-auth0';
 import { prisma } from '@/db';
 import { v4 as uuidv4 } from 'uuid';
-import { NextApiRequest } from 'next';
 import { run } from '@/scripts/ingest-data';
 import { parseForm } from '@/utils/parse-form';
 import { DocumentMetadata } from '@/types/document';

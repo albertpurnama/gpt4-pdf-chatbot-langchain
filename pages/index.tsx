@@ -13,10 +13,6 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient()
-
 export default function Home() {
   const [listError, setListError] = useState('');
   const [documentList, setDocumentList] = useState<Document[]>([]);

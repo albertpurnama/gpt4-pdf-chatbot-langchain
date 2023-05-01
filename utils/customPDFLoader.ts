@@ -5,9 +5,9 @@ import { BaseDocumentLoader } from 'langchain/document_loaders';
 export abstract class BufferLoader extends BaseDocumentLoader {
   private metadata: Record<string, any>;
 
-  constructor(public filePathOrBlob: string | Blob, metadata: Record<string, any>) {
+  constructor(public filePathOrBlob: string | Blob, metadata?: Record<string, any>) {
     super();
-    this.metadata = metadata;
+    this.metadata = metadata || {};
   }
 
   protected abstract parse(
