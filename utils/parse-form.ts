@@ -12,8 +12,9 @@ export const parseForm = async (
       maxFiles: 2,
       maxFileSize: 10 * 1024 * 1024, // 10mb
       filter: (part) => {
+        console.log(part);
         return (
-          part.name === "media" && (part.mimetype?.includes("application/pdf") || false)
+          part.name === "file" && (part.mimetype?.includes("application/pdf") || false)
         );
       },
     });

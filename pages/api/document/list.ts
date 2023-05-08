@@ -2,35 +2,28 @@ import { prisma } from '@/db';
 import { withApiAuthRequired, getSession } from '@auth0/nextjs-auth0';
 
 export default withApiAuthRequired(async function myApiRoute(req, res) {
+  // console.log('got here')
+
   const session = await getSession(req, res);
+  // console.log('session', session)
   if(!session) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   const user = session.user;
+  console.log({user})
 
   try {
-    let dbUser = await prisma.user.findFirst({
+    let dbUser = await prisma.user.findUnique({
       where: {
         email: user.email
+      },
+      include: {
+        documents: true
       }
     });
-    if (!dbUser) {
-      dbUser = await prisma.user.create({
-        data: {
-          email: user.email,
-          name: user.name,
-        },
-      });
-    }
 
-    const documents = prisma.documents.findMany({
-      where: {
-        ownerId: dbUser.id
-      }
-    })
-
-    res.json({
-      documents,
+    res.status(200).json({
+      documents: dbUser?.documents,
     })
   } catch (error) {
     console.log('error', error);

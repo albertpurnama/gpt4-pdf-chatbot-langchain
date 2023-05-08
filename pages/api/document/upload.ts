@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { withApiAuthRequired, getSession } from '@auth0/nextjs-auth0';
 import { prisma } from '@/db';
 import { v4 as uuidv4 } from 'uuid';
@@ -6,17 +7,23 @@ import { parseForm } from '@/utils/parse-form';
 import { DocumentMetadata } from '@/types/document';
 import formidable from 'formidable';
 
+//set bodyparser
+export const config = {
+  api: {
+    bodyParser: false
+  }
+}
+
 const processFile = async (file: formidable.File): Promise<DocumentMetadata> => {
+  const newDBId = uuidv4()
   const metadata = {
-    fileName: file.originalFilename,
-    dbId: uuidv4(),
+    fileName: file.originalFilename || '',
+    dbId: newDBId,
   };
+  const buff = fs.readFileSync(file.filepath)
 
   try {
-    await run(file, {
-      fileName: file.originalFilename,
-      dbId: uuidv4(),
-    })
+    await run(new Blob([buff]), metadata);
   } catch (error) {
     console.log('error', error);
     throw new Error(`Failed to ingest your file: ${file.originalFilename}`);
@@ -37,7 +44,7 @@ export default withApiAuthRequired((async function myApiRoute(req, res) {
   }
   const user = session.user;
 
-  const { files } = await parseForm(req);
+  const { files, fields } = await parseForm(req);
 
   try {
     let dbUser = await prisma.user.findFirst({
@@ -66,7 +73,7 @@ export default withApiAuthRequired((async function myApiRoute(req, res) {
           return metadata
         } catch(error) {
           console.log('error processing file', error);
-          return undefined;
+          throw new Error(`Failed to ingest your file: ${file.originalFilename}`);
         }
       });
     } else {
@@ -76,12 +83,10 @@ export default withApiAuthRequired((async function myApiRoute(req, res) {
           return metadata
         } catch(error) {
           console.log('error processing file', error);
-          return undefined;
+          throw new Error(`Failed to ingest your file: ${file.originalFilename}`);
         }
       });
     }
-
-
 
     const metadataToInsert = await Promise.all(fileProcesses).then((metadata) => metadata);
       
@@ -98,6 +103,6 @@ export default withApiAuthRequired((async function myApiRoute(req, res) {
     })
   } catch (error) {
     console.log('error', error);
-    res.status(500).json({ error: error || 'Something went wrong' });
+    return res.status(500).json({ error: error || 'Something went wrong' });
   }
 }));

@@ -28,20 +28,16 @@ export const run = async (buff: Blob, metadata: DocumentMetadata) => {
     const embeddings = new OpenAIEmbeddings();
     const index = pinecone.Index(PINECONE_INDEX_NAME); //change to your own index name
 
-    //embed the PDF documents
+    // embed the PDF documents
     await PineconeStore.fromDocuments(docs, embeddings, {
       pineconeIndex: index,
       namespace: PINECONE_NAME_SPACE,
       textKey: 'text',
-      filter: {}
+      filter: metadata,
     });
+    console.log('done');
   } catch (error) {
     console.log('error', error);
     throw new Error('Failed to ingest your data');
   }
 };
-
-(async () => {
-  await run();
-  console.log('ingestion complete');
-})();
